@@ -77,12 +77,41 @@ Resources:
               - "sts:AssumeRole"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-
   AppProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
         - Ref: S3ReadOnlyEC2Role
+
+  # JumpboxServer:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     KeyName: "jumpbox-key"
+  #     ImageId: ami-005bdb005fb00e791
+  #     InstanceType: t2.medium
+  #     IamInstanceProfile: !Ref AppProfile
+  #     Monitoring: true
+  #     BlockDeviceMappings:
+  #       - DeviceName: "/dev/sda1"
+  #         Ebs:
+  #           # 10gb for hard drive
+  #           VolumeSize: "10"
+  #     SubnetId:
+  #       Fn::ImportValue: !Sub "${EnvironmentName}-PUB3-SN"
+  #     SecurityGroupIds:
+  #       - Ref: JumpboxServerSecGroup
+  #     UserData: !Base64 |
+  #       #!/bin/bash -ex
+  #       export DEBIAN_FRONTEND=noninteractive
+  #       apt-get update &&
+  #       apt-get -o Dpkg::Options::="--force-confold" upgrade -q -y --force-yes &&
+  #       apt-get -o Dpkg::Options::="--force-confold" dist-upgrade -q -y --force-yes
+  #       apt-get install unzip awscli -y
+  #       apt-get install apache2 -y
+  #       systemctl start apache2.service
+  #       cd /var/www/html
+  #       aws s3 cp s3://eder-web-app/EderBlog.zip .
+  #       unzip -o EderBlog.zip
 
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -90,14 +119,17 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          apt-get update -y
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update &&
+          apt-get -o Dpkg::Options::="--force-confold" upgrade -q -y --force-yes &&
+          apt-get -o Dpkg::Options::="--force-confold" dist-upgrade -q -y --force-yes
           apt-get install unzip awscli -y
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
           aws s3 cp s3://eder-web-app/EderBlog.zip .
           unzip -o EderBlog.zip
-      ImageId: ami-085fd7441d1390d15
+      ImageId: ami-005bdb005fb00e791
       SecurityGroups:
         - Ref: WebServerSecGroup
       InstanceType: t2.medium
@@ -115,8 +147,8 @@ Resources:
         - Fn::ImportValue: !Sub "${EnvironmentName}-PRIV-NETS"
       LaunchConfigurationName:
         Ref: WebAppLaunchConfig
-      MaxSize: 4
-      MinSize: 2
+      MaxSize: 1
+      MinSize: 1
       TargetGroupARNs:
         - Ref: WebAppTargetGroup
 
