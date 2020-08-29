@@ -102,16 +102,6 @@ Resources:
   #       - Ref: JumpboxServerSecGroup
   #     UserData: !Base64 |
   #       #!/bin/bash -ex
-  #       export DEBIAN_FRONTEND=noninteractive
-  #       apt-get update &&
-  #       apt-get -o Dpkg::Options::="--force-confold" upgrade -q -y --force-yes &&
-  #       apt-get -o Dpkg::Options::="--force-confold" dist-upgrade -q -y --force-yes
-  #       apt-get install unzip awscli -y
-  #       apt-get install apache2 -y
-  #       systemctl start apache2.service
-  #       cd /var/www/html
-  #       aws s3 cp s3://eder-web-app/udagram.zip .
-  #       unzip -o udagram.zip
 
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -206,4 +196,4 @@ Outputs:
     Description: Public DNS to access web page
     Value: !Sub http//:${WebAppLB.DNSName}
     Export:
-      Name: WEB_DNS
+      Name: WEB-DNS
