@@ -110,8 +110,8 @@ Resources:
   #       apt-get install apache2 -y
   #       systemctl start apache2.service
   #       cd /var/www/html
-  #       aws s3 cp s3://eder-web-app/EderBlog.zip .
-  #       unzip -o EderBlog.zip
+  #       aws s3 cp s3://eder-web-app/udagram.zip .
+  #       unzip -o udagram.zip
 
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -127,8 +127,8 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          aws s3 cp s3://eder-web-app/EderBlog.zip .
-          unzip -o EderBlog.zip
+          aws s3 cp s3://eder-web-app/udagram.zip .
+          unzip -o udagram.zip
       ImageId: ami-005bdb005fb00e791
       SecurityGroups:
         - Ref: WebServerSecGroup
@@ -147,8 +147,8 @@ Resources:
         - Fn::ImportValue: !Sub "${EnvironmentName}-PRIV-NETS"
       LaunchConfigurationName:
         Ref: WebAppLaunchConfig
-      MaxSize: 1
-      MinSize: 1
+      MaxSize: 4
+      MinSize: 4
       TargetGroupARNs:
         - Ref: WebAppTargetGroup
 
@@ -200,3 +200,10 @@ Resources:
       VpcId:
         Fn::ImportValue:
           Fn::Sub: "${EnvironmentName}-VPCID"
+
+Outputs:
+  ELB:
+    Description: Public DNS to access web page
+    Value: !Sub http//:${WebAppLB.DNSName}
+    Export:
+      Name: WEB_DNS
